@@ -1,0 +1,42 @@
+name: Daily Contribution
+
+on:
+  schedule:
+    # Run at random times throughout the day (UTC)
+    - cron: '23 8 * * *'   # 8:23 AM UTC
+    - cron: '47 14 * * *'  # 2:47 PM UTC
+    - cron: '15 20 * * *'  # 8:15 PM UTC
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  commit:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Configure git
+        run: |
+          git config user.name "MasteraSnackin"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+      
+      - name: Generate activity
+        run: |
+          # Create or append to activity log
+          echo "Activity logged at $(date '+%Y-%m-%d %H:%M:%S UTC')" >> activity.log
+          echo "Random data: $RANDOM" >> activity.log
+          echo "---" >> activity.log
+      
+      - name: Commit changes
+        run: |
+          git add activity.log
+          git diff --quiet && git diff --staged --quiet || (
+            git commit -m "Daily activity update - $(date '+%Y-%m-%d')"
+            git push
+          )
